@@ -14,11 +14,13 @@ target_sources(ossia-videoplayer PRIVATE
     src/Viewport.cpp
 )
 
-target_compile_features(ossia-videoplayer PRIVATE cxx_std_17)
+target_compile_features(ossia-videoplayer PRIVATE 
+    cxx_std_17
+)
 
 target_link_libraries(ossia-videoplayer PRIVATE
     Qt5::Gui
     mpv
     ossia::ossia
     GL
-    )
+)
