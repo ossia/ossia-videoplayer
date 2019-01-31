@@ -17,4 +17,4 @@ An OSCQuery-enabled video player.
 
 
 Works with [ossia score](https://github.com/OSSIA/score) : 
-![Image](https://i.imgur.com/0NxMdep.png)
+![Image](https://i.imgur.com/RrBI3sq.png)
