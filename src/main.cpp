@@ -12,15 +12,17 @@ struct VideoPlayer
 {
   VideoPlayer(ossia::net::node_base& root)
   {
-    QTimer::singleShot(1000, [&] {
-      viewport.setFile("/home/jcelerier/sample-1080p30-Hap.avi");
-      viewport.setSpeed(5);
+    const auto file = "/home/jcelerier/sample-1080p30-Hap.avi";
+    QTimer::singleShot(1000, [=] {
+      viewport.setFile(file);
+      viewport.setSpeed(1.);
       viewport.loop(true);
       viewport.play(true);
     });
     auto& node = *root.create_child("video.0");
 
     auto play = ossia::create_parameter(node, "play", "bool");
+    play->set_value(true);
     play->add_callback([&](const ossia::value& v) {
       if (auto b = v.target<bool>())
       {
@@ -29,6 +31,7 @@ struct VideoPlayer
     });
 
     auto setFile = ossia::create_parameter(node, "file", "path");
+    setFile->set_value(std::string(file));
     setFile->add_callback([&](const ossia::value& v) {
       if (auto path = v.target<std::string>())
       {
@@ -43,8 +46,14 @@ struct VideoPlayer
         viewport.seek(*val);
       }
     });
+    auto position = ossia::create_parameter(node, "position", "float");
+    viewport.connect(&viewport, &Viewport::positionChanged,
+            [=] (float v) {
+        position->push_value(v);
+    });
 
     auto loop = ossia::create_parameter(node, "loop", "bool");
+    loop->set_value(true);
     loop->add_callback([&](const ossia::value& v) {
       if (auto val = v.target<bool>())
       {
@@ -53,6 +62,7 @@ struct VideoPlayer
     });
 
     auto speed = ossia::create_parameter(node, "speed", "float");
+    speed->set_value(1.0);
     speed->add_callback([&](const ossia::value& v) {
       if (auto val = v.target<float>())
       {

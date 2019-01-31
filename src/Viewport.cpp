@@ -20,12 +20,12 @@ Viewport::Viewport()
   mpv::qt::set_option_variant(mpv, "vo", "opengl-cb");
   mpv::qt::set_option_variant(mpv, "hwdec", "auto");
 
-  mpv_gl = (mpv_opengl_cb_context*)mpv_get_sub_api(mpv, MPV_SUB_API_OPENGL_CB);
-  if (!mpv_gl)
+  m_glCtx = (mpv_opengl_cb_context*)mpv_get_sub_api(mpv, MPV_SUB_API_OPENGL_CB);
+  if (!m_glCtx)
     throw std::runtime_error("OpenGL not compiled in");
 
   mpv_opengl_cb_set_update_callback(
-      mpv_gl,
+      m_glCtx,
       [](void* ctx) {
         QMetaObject::invokeMethod(
             (Viewport*)ctx, &Viewport::maybeUpdate, Qt::AutoConnection);
@@ -33,7 +33,7 @@ Viewport::Viewport()
       this);
 
   connect(this, &QOpenGLWindow::frameSwapped, this, [=] {
-    mpv_opengl_cb_report_flip(mpv_gl, 0);
+    mpv_opengl_cb_report_flip(m_glCtx, 0);
   });
 
   mpv_observe_property(mpv, 0, "duration", MPV_FORMAT_DOUBLE);
@@ -51,8 +51,8 @@ Viewport::Viewport()
 Viewport::~Viewport()
 {
   makeCurrent();
-  mpv_opengl_cb_set_update_callback(mpv_gl, nullptr, nullptr);
-  mpv_opengl_cb_uninit_gl(mpv_gl);
+  mpv_opengl_cb_set_update_callback(m_glCtx, nullptr, nullptr);
+  mpv_opengl_cb_uninit_gl(m_glCtx);
 }
 
 void Viewport::command(const QVariant& params)
@@ -79,14 +79,14 @@ void Viewport::initializeGL()
       return nullptr;
     return reinterpret_cast<void*>(glctx->getProcAddress(QByteArray(name)));
   };
-  int r = mpv_opengl_cb_init_gl(mpv_gl, nullptr, get_proc_address, nullptr);
+  int r = mpv_opengl_cb_init_gl(m_glCtx, nullptr, get_proc_address, nullptr);
   if (r < 0)
     throw std::runtime_error("could not initialize OpenGL");
 }
 
 void Viewport::paintGL()
 {
-  mpv_opengl_cb_draw(mpv_gl, defaultFramebufferObject(), width(), -height());
+  mpv_opengl_cb_draw(m_glCtx, defaultFramebufferObject(), width(), -height());
 }
 
 void Viewport::on_mpv_events()
@@ -150,7 +150,7 @@ void Viewport::maybeUpdate()
     makeCurrent();
     paintGL();
     context()->swapBuffers(context()->surface());
-    mpv_opengl_cb_report_flip(mpv_gl, 0);
+    mpv_opengl_cb_report_flip(m_glCtx, 0);
     doneCurrent();
   }
   else

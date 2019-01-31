@@ -42,10 +42,12 @@ public:
   }
 
   void durationChanged(double value)
-      W_SIGNAL(durationChanged, value) void positionChanged(double value)
-          W_SIGNAL(positionChanged, value)
+  W_SIGNAL(durationChanged, value);
+  void positionChanged(double value)
+  W_SIGNAL(positionChanged, value);
 
-              private : void command(const QVariant& params);
+private:
+  void command(const QVariant& params);
   void setOption(const QString& name, const QVariant& value);
   QVariant getOption(const QString& name) const;
 
@@ -58,5 +60,5 @@ public:
   void handle_mpv_event(mpv_event* event);
 
   mpv::qt::Handle mpv;
-  mpv_opengl_cb_context* mpv_gl;
+  mpv_opengl_cb_context* m_glCtx{};
 };
